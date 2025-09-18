@@ -32,10 +32,10 @@ Manual code reviews are time-consuming and can be inconsistent. An automated AI 
 ## 5. Technical Details
 
 The solution will be built on the following technical stack:
-- **AI Service**: An agent hosted on Azure Agent Service (AI Foundry) will perform the code analysis.
-- **Orchestration**: Python-based Azure Functions will be triggered by Azure DevOps webhooks (PR create/update) to manage the workflow, fetch PR data, and invoke the AI agent.
-- **Context Provider**: An Azure DevOps MCP (Microsoft Cloud Platform) Server will provide additional context to the agent, such as coding standards and repository history.
-- **MCP Integration**: An Azure DevOps MCP (Model Context Protocol) Bridge provides standardized communication between the AI agent and Azure DevOps APIs. Spawning and managing the Azure DevOps MCP server as a subprocess of the orchestrator function. Implements JSON-RPC 2.0 communication protocol for MCP message exchange and provides synchronous wrappers for async MCP operations.
+- **AI Service**: An agent hosted on Azure Agent Service (AI Foundry).
+- **Orchestration**: Python-based Azure Function will be triggered by Azure DevOps webhooks or pipeline steps (PR create/update) to manage the workflow, fetch PR data, and invoke the AI agent.
+- **Context Provider**: An Azure DevOps MCP (Model Context Protocol) Bridge provides standardized communication between the AI agent and Azure DevOps APIs. Spawning and managing the Azure DevOps MCP server as a subprocess of the orchestrator function. Implements JSON-RPC 2.0 communication protocol for MCP message exchange and provides synchronous wrappers for async MCP operations.
+- **Imperative Tools** Azure DevOps REST API will be used for actions that need to be consistent and not called by agent choice: Gather PR Diff, Post Overview Summary Comment.
 
 MCP Server:
 https://github.com/microsoft/azure-devops-mcp
@@ -71,6 +71,8 @@ Example Request body to the Function:
 
 ## 6. Process Flow
 
+![diagram](./whisk_takers_flow_diagram.png)
+
 1. Request Validation: Receive HTTP Request + Parse JSON body
 2. Retrieve Git Diff + Metadata via ADO REST API (PAT AUTH)
 3. Initialise MCP Server: Import MCP tools, Setup tool call handler for AI agent functions (PAT AUTH)
@@ -86,3 +88,6 @@ Example Request body to the Function:
 - Full CI/CD pipeline execution (the agent focuses solely on code review).
 - Analysis of non-code files (e.g., images, binaries). We need to make sure that we omit this when creating git diffs for the agent to avoid passing dead context.
 - A user interface for managing the agent's configuration (initial configuration will be file-based).
+
+## 8. Testing
+
